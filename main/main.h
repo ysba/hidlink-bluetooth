@@ -34,7 +34,7 @@
 #include <driver/gpio.h>
 
 #include "hardware.h"
-#include "hidlink.h"
+#include "hidlink/hidlink.h"
 #include "bt_gap.h"
 #include "bt_hid_host.h"
 #include "ble_gap.h"

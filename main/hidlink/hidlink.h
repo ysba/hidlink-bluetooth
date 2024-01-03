@@ -1,6 +1,10 @@
 #ifndef __HIDLINK__
 #define __HIDLINK__
 
+
+#include "hidlink_ble_protocol.h"
+
+
 #define HIDLINK_DEVICE_NAME "hidlink"
 
 #define HIDLINK_DEVICE_BD_ADDR_LIST_LEN     64
@@ -62,7 +66,6 @@ void hidlink_set_command(hidlink_command_t command);
 void hidlink_add_discovered_device(esp_bd_addr_t *device_bd_addr);
 bool hidlink_check_device_already_discovered(esp_bd_addr_t *device_bd_addr);
 void hidlink_add_hid_device(esp_bd_addr_t *bd_addr, char *name);
-void hidlink_ble_protocol_parser(uint8_t *data, uint32_t len);
 void hidlink_ble_set_char_handle(uint16_t char_handle);
 void hidlink_ble_set_mtu(uint16_t mtu);
 void hidlink_set_ble_data(esp_gatt_if_t gatts_if, uint16_t conn_id, esp_bd_addr_t *bda);
