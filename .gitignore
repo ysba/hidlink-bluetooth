@@ -1,4 +1,7 @@
 build/
 .vscode/
+html/
+latex/
 sdkconfig
 sdkconfig.old
+

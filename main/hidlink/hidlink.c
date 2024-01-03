@@ -1,3 +1,9 @@
+/**
+ * @file hidlink.c
+ * @brief This file contains functions for basic arithmetic operations.
+ */
+
+
 #include "../main.h"
 #include "hidlink_private.h"
 
@@ -9,6 +15,8 @@ char *dev_name = HIDLINK_DEVICE_NAME;
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 // static functions
+
+
 
 static void hidlink_init() {
 
@@ -58,6 +66,15 @@ static void hidlink_clear_hid_list() {
 // extern functions
 
 
+/**
+ * A brief history of JavaDoc-style (C-style) comments.
+ *
+ * This is the typical JavaDoc-style C-style comment. It starts with two
+ * asterisks.
+ *
+ * @param theory Even if there is only one possible unified theory. it is just a
+ *               set of rules and equations.
+ */
 void hidlink_main_task() {
 
     esp_err_t err;
@@ -209,7 +226,7 @@ void hidlink_main_task() {
                     ESP_LOGW(TAG, "%s, nvs_flash_deinit failed: %s", __func__, esp_err_to_name(err));
                 }
 
-                ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_DEINIT, 5s delay then restart", __func__);
+                ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_DEINIT, 5s delay then back to HIDLINK_STATE_API_INIT", __func__);
                 vTaskDelay(pdMS_TO_TICKS(5000));
                 hidlink_init();
                 break;
