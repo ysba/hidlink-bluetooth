@@ -60,10 +60,10 @@ static void hidlink_ble_command_attach_to_peripheral() {
 
         hidlink_ble_ack_response(0x15);
     }
-    else if (index <= hidlink.hid_list.index) {
+    else if (index <= hidlink.hid_peripheral_list.index) {
 
         index -= 1;
-        esp_bt_hid_host_connect(hidlink.hid_list.bd_addr[index]);
+        esp_bt_hid_host_connect(hidlink.hid_peripheral_list.bd_addr[index]);
         hidlink_ble_ack_response(0x06);
 
     }

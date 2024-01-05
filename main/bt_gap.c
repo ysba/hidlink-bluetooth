@@ -25,7 +25,10 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
         case ESP_BT_GAP_DISC_RES_EVT: {
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_DISC_RES_EVT", __func__);
 
-            if (hidlink_check_device_already_discovered(&param->disc_res.bda) == false) {
+            //if (hidlink_check_device_already_discovered(&param->disc_res.bda) == false) {
+
+                // #TODO: always call the function to add device. the function will filter already added devices.
+            if (false) {
 
                 uint32_t i;
                 esp_bt_gap_dev_prop_t *property;
@@ -36,7 +39,8 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
                 uint8_t *eir = NULL;
                 uint8_t eir_len = 0;
                 
-                hidlink_add_discovered_device(&param->disc_res.bda);
+                // #TODO: deprecated
+                //hidlink_add_discovered_device(&param->disc_res.bda);
 
                 ESP_LOGI(TAG, "device found: %s", bda2str(param->disc_res.bda, bda_str, 18));
                 ESP_LOGD(TAG, "number of properties: %d", param->disc_res.num_prop);
@@ -102,7 +106,7 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
                     esp_bt_gap_read_remote_name(param->disc_res.bda);
                 }
                 else {
-                    hidlink_add_hid_device(&param->disc_res.bda, (char *) bdname);
+                    hidlink_add_hid_peripheral(&param->disc_res.bda, (char *) bdname);
                     ESP_LOGI(TAG, "device added %s to hidlink list!", bda2str(param->disc_res.bda, bda_str, 18));
                 }
             }
@@ -137,7 +141,7 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
         case ESP_BT_GAP_READ_REMOTE_NAME_EVT: {
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_READ_REMOTE_NAME_EVT", __func__);
             ESP_LOGI(TAG, "--name: %s", param->read_rmt_name.rmt_name);
-            hidlink_add_hid_device(&param->read_rmt_name.bda, (char *) param->read_rmt_name.rmt_name);
+            hidlink_add_hid_peripheral(&param->read_rmt_name.bda, (char *) param->read_rmt_name.rmt_name);
             ESP_LOGI(TAG, "device added %s to hidlink list!", bda2str(param->read_rmt_name.bda, bda_str, 18));
             break;
         }

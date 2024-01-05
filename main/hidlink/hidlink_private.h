@@ -1,9 +1,23 @@
+/**
+ * @file hidlink_private.h
+ * @brief Header containing definitions for hidlink internal operation.
+ */
+
 #ifndef __HIDLINK_PRIVATE__
 #define __HIDLINK_PRIVATE__
 
 
 // tag for esp32 log messages
 #define TAG          "HIDLINK"
+
+#define HIDLINK_DEVICES_NUMBER              16
+
+#define HIDLINK_PROTOCOL_BUFFER_LEN         64
+
+#define HIDLINK_PERIPHERAL_MAX_NAME_LEN     32
+
+#define HIDLINK_UART_PORT_NUM       2
+#define HIDLINK_UART_BUF_SIZE       256
 
 
 // hidlink_t data structure
@@ -14,14 +28,9 @@ typedef struct {
     
     struct {
         uint32_t index;
-        esp_bd_addr_t bd_addr[HIDLINK_DEVICE_BD_ADDR_LIST_LEN];
-    } full_device_list;
-    
-    struct {
-        uint32_t index;
         esp_bd_addr_t bd_addr[HIDLINK_DEVICES_NUMBER];
         char name[HIDLINK_DEVICES_NUMBER][HIDLINK_PERIPHERAL_MAX_NAME_LEN];
-    } hid_list;
+    } hid_peripheral_list;
 
     struct {
         hidlink_protocol_state_t state;
@@ -64,8 +73,12 @@ typedef struct {
 
 extern hidlink_t hidlink;
 
+extern char *dev_name;
 
+void hidlink_init();
+void hidlink_clear_hid_peripheral_list();
 void hidlink_ble_indicate();
-
+void hidlink_core_task();
+void hidlink_send_hid_peripheral_data(uint8_t peripheral_index, esp_bd_addr_t *bd_addr, char *name);
 
 #endif

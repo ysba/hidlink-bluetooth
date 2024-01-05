@@ -174,7 +174,7 @@ void gatts_cdtp_cb(esp_gatts_cb_event_t event,esp_gatt_if_t gatts_if,esp_ble_gat
                 // write to cccd of data characteristic. can enable/disable notifications and indications
                 ESP_LOGD(TAG, "BLE_CDTP_INDEX_DATA_CFG");
                 memcpy(cdtp_data_ccc, p_data->write.value, 2);
-                hidlink_set_rx_cccd(*((uint16_t *) cdtp_data_ccc));
+                hidlink_set_cccd(*((uint16_t *) cdtp_data_ccc));
                 ESP_LOGI(TAG, "setting rx cccd value %u", *((uint16_t *) cdtp_data_ccc));
             }
       	 	break;
@@ -198,7 +198,7 @@ void gatts_cdtp_cb(esp_gatts_cb_event_t event,esp_gatt_if_t gatts_if,esp_ble_gat
 
     	case ESP_GATTS_CONNECT_EVT: {
             ESP_LOGD(TAG, "ESP_GATTS_CONNECT_EVT");
-            hidlink_set_ble_data(gatts_if, p_data->connect.conn_id, &p_data->connect.remote_bda);
+            hidlink_set_ble_connection_info(gatts_if, p_data->connect.conn_id, &p_data->connect.remote_bda);
         	break;
         }
         

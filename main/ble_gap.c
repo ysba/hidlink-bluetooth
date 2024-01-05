@@ -36,15 +36,17 @@ uint32_t ble_gap_get_scan_len() {
 
 
 uint8_t *ble_gap_get_advertising_data() {
+    char *device_name;
+    device_name = hidlink_get_device_name();
     memset(advertising.data, 0, sizeof(advertising.data));
     advertising.len = 0;
     advertising.data[advertising.len++] = 0x02;
     advertising.data[advertising.len++] = 0x01;
     advertising.data[advertising.len++] = 0x06;
-    advertising.data[advertising.len++] = strlen(HIDLINK_DEVICE_NAME) + 1;
+    advertising.data[advertising.len++] = strlen(device_name) + 1;
     advertising.data[advertising.len++] = 0x09;
-    strcpy((char *) &advertising.data[advertising.len], HIDLINK_DEVICE_NAME);
-    advertising.len += strlen(HIDLINK_DEVICE_NAME);
+    strcpy((char *) &advertising.data[advertising.len], device_name);
+    advertising.len += strlen(device_name);
 
     ESP_LOG_BUFFER_HEX_LEVEL(TAG, advertising.data, advertising.len, ESP_LOG_DEBUG);
     return (advertising.data);
