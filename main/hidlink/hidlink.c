@@ -46,30 +46,64 @@ void hidlink_set_command(hidlink_command_t command) {
  * @param name Pointer to discovered device name.
  */
 void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
-
-
-    // #TODO: this function needs to filter already added devices
     
     uint32_t i;
     uint32_t name_len;
+    char bda_str[18];
 
-    i = hidlink.hid_peripheral_list.index;
+    if (hidlink.hid_peripheral_list.index >= HIDLINK_DEVICES_NUMBER) {
 
-    name_len = strlen(name);
+        ESP_LOGW(TAG, "%s, not adding peripheral to list: %s [%s]. list is full with %lu devices",
+                __func__,
+                name,
+                bda2str(*bd_addr, bda_str, 18),
+                (uint32_t) HIDLINK_DEVICES_NUMBER
+            );
 
-    if (name_len > (HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1))
-        name_len = HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1;
+    }
+    else {
+        // check if device is already on list
+        // in case "i" value reaches "index" value, address was not found in list
+        for (i = 0; i < hidlink.hid_peripheral_list.index; i++) {
 
-    if (i < HIDLINK_DEVICES_NUMBER) {
+            if (!memcmp(&hidlink.hid_peripheral_list.bd_addr[i], (uint8_t *) bd_addr, 6)) {
+                break;
+            }
+        }
 
-        memcpy(&hidlink.hid_peripheral_list.bd_addr[i], bd_addr, sizeof(esp_bd_addr_t));
-        memset(&hidlink.hid_peripheral_list.name[i], 0, ESP_BT_GAP_MAX_BDNAME_LEN);
-        memcpy(&hidlink.hid_peripheral_list.name[i], name, name_len);
+        if (i < hidlink.hid_peripheral_list.index) {
 
-        // sends indication to the BLE interface
-        hidlink_send_hid_peripheral_data(hidlink.hid_peripheral_list.index, bd_addr, name);
-        
-        hidlink.hid_peripheral_list.index++;
+            // device already on the list
+
+            ESP_LOGD(TAG, "%s, peripheral already on list: %s [%s]",
+                __func__,
+                name,
+                bda2str(*bd_addr, bda_str, 18)
+            );
+        }
+        else {
+
+            // add new device to list
+            name_len = strlen(name);
+
+            if (name_len > (HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1))
+                name_len = HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1;
+
+            ESP_LOGI(TAG, "%s, adding peripheral to list: %s [%s]",
+                __func__,
+                name,
+                bda2str(*bd_addr, bda_str, 18)
+            );
+
+            memcpy(&hidlink.hid_peripheral_list.bd_addr[i], bd_addr, sizeof(esp_bd_addr_t));
+            memset(&hidlink.hid_peripheral_list.name[i], 0, ESP_BT_GAP_MAX_BDNAME_LEN);
+            memcpy(&hidlink.hid_peripheral_list.name[i], name, name_len);
+
+            // sends indication to the BLE interface
+            hidlink_send_hid_peripheral_data(hidlink.hid_peripheral_list.index, bd_addr, name);
+            
+            hidlink.hid_peripheral_list.index++; 
+        }
     }
 }
 
