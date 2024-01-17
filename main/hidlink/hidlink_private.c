@@ -149,8 +149,7 @@ void hidlink_core_task() {
                     ESP_LOGE(TAG, "nvs_flash_init failed:  %s", esp_err_to_name(err));
                     hidlink.state = HIDLINK_STATE_API_DEINIT;
                 }
-
-                if (bt_classic_init() == false) {
+                else if (bt_classic_init() == false) {
 
                     hidlink.state = HIDLINK_STATE_API_DEINIT;
                 }
@@ -158,6 +157,8 @@ void hidlink_core_task() {
 
                     hidlink.state = HIDLINK_STATE_API_DEINIT;
                 }
+
+                // #TODO: add serial_port group
                 else if((err = uart_driver_install(HIDLINK_UART_PORT_NUM, 
                         HIDLINK_UART_BUF_SIZE, 0, 0, NULL, intr_alloc_flags)) != ESP_OK) {
                     ESP_LOGE(TAG, "uart_driver_install failed: %s", esp_err_to_name(err));
