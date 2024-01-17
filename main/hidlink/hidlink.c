@@ -10,6 +10,10 @@
 #include "hidlink_private.h"
 
 
+// bluetooth device name (same for both ble and classic)
+char *dev_name = "hidlink";
+
+
 /**
  * @brief Start hidlink task.
  *

@@ -1,11 +1,16 @@
-idf_component_register(SRCS 
-    "ble_cdtp.c"
-    "ble_gap.c" 
-    "ble_gatts.c" 
-    "bt_gap.c" 
-    "bt_hid_host.c" 
-    "hidlink/hidlink.c" 
-    "hidlink/hidlink_private.c" 
-    "hidlink/hidlink_ble_protocol.c" 
-    "main.c"
-    INCLUDE_DIRS "")
+idf_component_register(
+    SRCS 
+        "main.c"
+        "hidlink/hidlink.c"
+        "hidlink/hidlink_private.c"
+        "hidlink/hidlink_ble_protocol.c"
+        "bt_classic/bt_classic.c"
+        "bt_classic/bt_gap.c"
+        "bt_classic/bt_hid_host.c"
+        "bt_low_energy/bt_low_energy.c"
+        "bt_low_energy/ble_cdtp.c"
+        "bt_low_energy/ble_gap.c"
+        "bt_low_energy/ble_gatts.c"
+    INCLUDE_DIRS 
+        "."
+)

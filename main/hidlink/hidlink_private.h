@@ -73,7 +73,6 @@ typedef struct {
 
 extern hidlink_t hidlink;
 
-extern char *dev_name;
 
 void hidlink_init();
 void hidlink_clear_hid_peripheral_list();

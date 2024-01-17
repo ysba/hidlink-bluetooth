@@ -1,4 +1,6 @@
-#include "main.h"
+#include "../main.h"
+#include "bt_classic_private.h"
+
 
 static const char *TAG = "BT_HID_HOST";
 

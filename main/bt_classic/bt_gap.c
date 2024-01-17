@@ -1,21 +1,10 @@
-#include "main.h"
+#include "../main.h"
+#include "bt_classic_private.h"
 
 static const char *TAG = "BT_GAP";
 
 
 static char bda_str[18];
-
-
-char *bda2str(esp_bd_addr_t bda, char *str, size_t size) {
-    if (bda == NULL || str == NULL || size < 18) {
-        return NULL;
-    }
-
-    uint8_t *p = bda;
-    sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
-            p[0], p[1], p[2], p[3], p[4], p[5]);
-    return str;
-}
 
 
 void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {

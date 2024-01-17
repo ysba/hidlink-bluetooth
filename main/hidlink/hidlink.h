@@ -67,4 +67,6 @@ void hidlink_set_cccd(uint16_t val);
 void hidlink_send_hid_report_to_uart(uint8_t *data, uint32_t len);
 char *hidlink_get_device_name();
 
+extern char *dev_name;
+
 #endif

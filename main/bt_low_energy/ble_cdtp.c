@@ -1,4 +1,6 @@
-#include "main.h"
+#include "../main.h"
+#include "bt_low_energy_private.h"
+
 
 /* CDTP - CUSTOM DATA TRANSFER PROFILE */
 

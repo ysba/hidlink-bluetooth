@@ -35,8 +35,5 @@
 
 #include "hardware.h"
 #include "hidlink/hidlink.h"
-#include "bt_gap.h"
-#include "bt_hid_host.h"
-#include "ble_gap.h"
-#include "ble_gatts.h"
-#include "ble_cdtp.h"
+#include "bt_classic/bt_classic.h"
+#include "bt_low_energy/bt_low_energy.h"
