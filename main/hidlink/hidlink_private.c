@@ -250,8 +250,8 @@ void hidlink_core_task() {
                             for(i = 0; i < hidlink.hid_peripheral_list.index; i++) {
                                 ESP_LOGI(TAG, "%02lu: %s [%s]", 
                                     i + 1,
-                                    hidlink.hid_peripheral_list.name[i],
-                                    bda2str(hidlink.hid_peripheral_list.bd_addr[i], bda_str, 18));
+                                    hidlink.hid_peripheral_list.device[i].name,
+                                    bda2str(hidlink.hid_peripheral_list.device[i].bd_addr, bda_str, 18));
                             }
                         }
                     }

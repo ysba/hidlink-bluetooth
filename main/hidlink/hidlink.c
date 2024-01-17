@@ -70,7 +70,7 @@ void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
         // in case "i" value reaches "index" value, address was not found in list
         for (i = 0; i < hidlink.hid_peripheral_list.index; i++) {
 
-            if (!memcmp(&hidlink.hid_peripheral_list.bd_addr[i], (uint8_t *) bd_addr, 6)) {
+            if (!memcmp(&hidlink.hid_peripheral_list.device[i].bd_addr, (uint8_t *) bd_addr, 6)) {
                 break;
             }
         }
@@ -99,9 +99,9 @@ void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
                 bda2str(*bd_addr, bda_str, 18)
             );
 
-            memcpy(&hidlink.hid_peripheral_list.bd_addr[i], bd_addr, sizeof(esp_bd_addr_t));
-            memset(&hidlink.hid_peripheral_list.name[i], 0, ESP_BT_GAP_MAX_BDNAME_LEN);
-            memcpy(&hidlink.hid_peripheral_list.name[i], name, name_len);
+            memcpy(&hidlink.hid_peripheral_list.device[i].bd_addr, bd_addr, sizeof(esp_bd_addr_t));
+            memset(&hidlink.hid_peripheral_list.device[i].name, 0, ESP_BT_GAP_MAX_BDNAME_LEN);
+            memcpy(&hidlink.hid_peripheral_list.device[i].name, name, name_len);
 
             // sends indication to the BLE interface
             hidlink_send_hid_peripheral_data(hidlink.hid_peripheral_list.index, bd_addr, name);

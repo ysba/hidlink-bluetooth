@@ -20,6 +20,13 @@
 #define HIDLINK_UART_BUF_SIZE       256
 
 
+// hid peripheral information
+typedef struct {
+    esp_bd_addr_t bd_addr;
+    char name[HIDLINK_PERIPHERAL_MAX_NAME_LEN];
+} hid_peripheral_t;
+
+
 // hidlink_t data structure
 typedef struct {
     hidlink_state_t state;
@@ -28,9 +35,10 @@ typedef struct {
     
     struct {
         uint32_t index;
-        esp_bd_addr_t bd_addr[HIDLINK_DEVICES_NUMBER];
-        char name[HIDLINK_DEVICES_NUMBER][HIDLINK_PERIPHERAL_MAX_NAME_LEN];
+        hid_peripheral_t device[HIDLINK_DEVICES_NUMBER];
     } hid_peripheral_list;
+
+    hid_peripheral_t attached_device;
 
     struct {
         hidlink_protocol_state_t state;
