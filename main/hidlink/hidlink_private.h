@@ -10,6 +10,8 @@
 // tag for esp32 log messages
 #define TAG          "HIDLINK"
 
+#define HIDLINK_ATTACHED_DEVICE_NVS_VAR     "attchdev"
+
 #define HIDLINK_DEVICES_NUMBER              16
 
 #define HIDLINK_PROTOCOL_BUFFER_LEN         64
@@ -87,5 +89,7 @@ void hidlink_clear_hid_peripheral_list();
 void hidlink_ble_indicate();
 void hidlink_core_task();
 void hidlink_send_hid_peripheral_data(uint8_t peripheral_index, esp_bd_addr_t *bd_addr, char *name);
+bool hidlink_attach_to_device(uint32_t index);
+bool hidlink_load_attached_device(hid_peripheral_t *attached_device);
 
 #endif

@@ -51,26 +51,17 @@ static void hidlink_ble_command_stop_scan() {
 static void hidlink_ble_command_attach_to_peripheral() {
 
     uint32_t index;
+    uint8_t ack = 0x15;
 
     ESP_LOGI(TAG, "%s", __func__);
 
     index = hidlink.rx.data[3];
-
-    if (index == 0) {
-
-        hidlink_ble_ack_response(0x15);
-    }
-    else if (index <= hidlink.hid_peripheral_list.index) {
-
-        index -= 1;
-        esp_bt_hid_host_connect(hidlink.hid_peripheral_list.device[index].bd_addr);
+    
+    if (hidlink_attach_to_device(index) == true) {
         hidlink_ble_ack_response(0x06);
-
     }
-    else {
-
-        hidlink_ble_ack_response(0x15);
-    }
+    
+    hidlink_ble_ack_response(ack);
 }
 
 
