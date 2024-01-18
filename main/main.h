@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MAIN_HEADER__
+#define __MAIN_HEADER__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,3 +38,5 @@
 #include "hidlink/hidlink.h"
 #include "bt_classic/bt_classic.h"
 #include "bt_low_energy/bt_low_energy.h"
+
+#endif

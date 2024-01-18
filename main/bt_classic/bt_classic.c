@@ -44,6 +44,10 @@ bool bt_classic_init() {
         ESP_LOGE(TAG, "esp_bt_hid_host_init failed: %s", esp_err_to_name(err));
         ret_val = false;
     }
+    else if ((err = esp_bt_dev_set_device_name(dev_name)) != ESP_OK) {
+        ESP_LOGE(TAG, "esp_bt_dev_set_device_name failed: %s", esp_err_to_name(err));
+        ret_val = false;
+    }
 
     return (ret_val);
 }

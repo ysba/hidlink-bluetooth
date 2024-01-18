@@ -17,14 +17,6 @@ bool bt_low_energy_init() {
         ESP_LOGE(TAG, "esp_ble_gap_register_callback failed: %s", esp_err_to_name(err));
         ret_val = false;
     }
-    else if ((err = esp_bt_dev_set_device_name(dev_name)) != ESP_OK) {
-        ESP_LOGE(TAG, "esp_bt_dev_set_device_name failed: %s", esp_err_to_name(err));
-        ret_val = false;
-    }
-    else if ((err = esp_ble_gap_set_device_name(dev_name)) != ESP_OK) {
-        ESP_LOGE(TAG, "esp_ble_gap_set_device_name failed: %s", esp_err_to_name(err));
-        ret_val = false;
-    }
     else if ((err = esp_ble_gatts_app_register(ESP_SPP_APP_ID)) != ESP_OK) {
         ESP_LOGE(TAG, "esp_ble_gatts_app_register failed: %s", esp_err_to_name(err));
         ret_val = false;
