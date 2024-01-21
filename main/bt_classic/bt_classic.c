@@ -9,6 +9,8 @@ bool bt_classic_init() {
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     esp_bluedroid_config_t bluedroid_cfg = BT_BLUEDROID_INIT_CONFIG_DEFAULT();
+    esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
+    esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
     bool ret_val = true;
     esp_err_t err;
 
@@ -48,7 +50,11 @@ bool bt_classic_init() {
         ESP_LOGE(TAG, "esp_bt_dev_set_device_name failed: %s", esp_err_to_name(err));
         ret_val = false;
     }
-
+    else if ((err = esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t))) != ESP_OK) {
+        ESP_LOGE(TAG, "esp_bt_gap_set_security_param failed: %s", esp_err_to_name(err));
+        ret_val = false;
+    }
+    
     return (ret_val);
 }
 

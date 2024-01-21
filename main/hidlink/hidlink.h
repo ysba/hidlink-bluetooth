@@ -15,7 +15,6 @@
 typedef enum {
     HIDLINK_STATE_API_INIT = 0,
     HIDLINK_STATE_API_DEINIT,
-    HIDLINK_STATE_CONNECT_TO_ATTACHED_DEVICE,
 	HIDLINK_STATE_IDLE,
 } hidlink_state_t;
 
@@ -27,7 +26,8 @@ typedef enum {
     HIDLINK_COMMAND_SCAN_DONE,
     HIDLINK_COMMAND_SET_STATUS_CONNECTED,
     HIDLINK_COMMAND_SET_STATUS_IDLE,
-    HIDLINK_COMMAND_CONNECT_TO_ATTACHED_DEVICE
+    HIDLINK_COMMAND_CLEAR_BOND_DEVICE_LIST,
+    HIDLINK_COMMAND_SHOW_ATTACHED_DEVICE_INFO,
 } hidlink_command_t;
 
 
@@ -65,6 +65,9 @@ void hidlink_ble_set_char_handle(uint16_t char_handle);
 void hidlink_ble_set_mtu(uint16_t mtu);
 void hidlink_set_ble_connection_info(esp_gatt_if_t gatts_if, uint16_t conn_id, esp_bd_addr_t *bda);
 void hidlink_set_cccd(uint16_t val);
+hidlink_status_t hidlink_get_status();
+void hidlink_set_attached_device_bda(esp_bd_addr_t *bda);
+void hidlink_set_attached_device_name(char *new_name);
 
 void hidlink_send_hid_report_to_uart(uint8_t *data, uint32_t len);
 char *hidlink_get_device_name();

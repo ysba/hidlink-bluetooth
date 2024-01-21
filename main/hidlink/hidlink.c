@@ -253,3 +253,31 @@ void hidlink_send_hid_report_to_uart(uint8_t *data, uint32_t len) {
 
     ESP_LOG_BUFFER_HEX_LEVEL(TAG, buf, tx_count, ESP_LOG_INFO);
 }
+
+
+/**
+ * @brief Get hidlink current status
+ *
+ * This function is called to get current hidlink status (ie. connected, idle, etc).
+ */
+hidlink_status_t hidlink_get_status() {
+
+    return (hidlink.status);
+}
+
+
+void hidlink_set_attached_device_bda(esp_bd_addr_t *bda) {
+
+    memcpy(&hidlink.attached_device.bd_addr, bda, sizeof(esp_bd_addr_t));
+}
+
+
+void hidlink_set_attached_device_name(char *new_name) {
+
+    uint32_t len = strlen(new_name);
+
+    if (len > (HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1))
+        len = HIDLINK_PERIPHERAL_MAX_NAME_LEN - 1;
+
+    strncpy(hidlink.attached_device.name, new_name, len);
+}

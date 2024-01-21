@@ -21,7 +21,6 @@ void bt_hid_host_event_handler(esp_hidh_cb_event_t event, esp_hidh_cb_param_t *p
 
         case ESP_HIDH_OPEN_EVT: {
             ESP_LOGD(TAG, "%s, ESP_HIDH_OPEN_EVT", __func__);
-            hidlink_set_command(HIDLINK_COMMAND_SET_STATUS_CONNECTED);
             break;
         }
 

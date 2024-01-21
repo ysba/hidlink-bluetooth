@@ -182,7 +182,7 @@ void hidlink_core_task() {
                 else {
                     // api init success
                     ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_INIT, ok", __func__);
-                    hidlink.state = HIDLINK_STATE_CONNECT_TO_ATTACHED_DEVICE;
+                    hidlink.state = HIDLINK_STATE_IDLE;
                 }
                 break;
             }        
@@ -216,32 +216,6 @@ void hidlink_core_task() {
                 hidlink_init();
                 break;
             }
-
-            case HIDLINK_STATE_CONNECT_TO_ATTACHED_DEVICE: {
-
-                hid_peripheral_t attached_device = {0};
-
-                if (hidlink_load_attached_device(&attached_device) == true) {
-
-                    ESP_LOGI(TAG, "attached device found: %s [%s]", 
-                        attached_device.name,
-                        bda2str(attached_device.bd_addr, bda_str, 18)
-                    );
-
-                    ESP_LOGI(TAG, "trying to connect...");
-
-
-                    esp_bt_hid_host_connect(attached_device.bd_addr);
-                }
-                else {
-
-                    ESP_LOGW(TAG, "unable to load attached device");
-                }
-
-                hidlink.state = HIDLINK_STATE_IDLE;
-
-                break;
-            }
             
             case HIDLINK_STATE_IDLE: {
 
@@ -252,8 +226,6 @@ void hidlink_core_task() {
                     if (command == HIDLINK_COMMAND_SCAN_START) {
                         if (hidlink.status != HIDLINK_STATUS_SCANNING) {
                             ESP_LOGI(TAG, "%s, HIDLINK_COMMAND_SCAN_START", __func__);
-                            // #TODO: remove, deprecated
-                            //hidlink_clear_full_device_list();
                             hidlink_clear_hid_peripheral_list();
                             hidlink.status = HIDLINK_STATUS_SCANNING;
                             esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0);
@@ -261,6 +233,7 @@ void hidlink_core_task() {
                     }
                     else if (command == HIDLINK_COMMAND_SCAN_STOP) {
                         if (hidlink.status == HIDLINK_STATUS_SCANNING) {
+                            hidlink.status = HIDLINK_STATUS_IDLE;
                             ESP_LOGI(TAG, "%s, HIDLINK_COMMAND_SCAN_STOP", __func__);
                             esp_bt_gap_cancel_discovery();
                         }
@@ -292,9 +265,39 @@ void hidlink_core_task() {
                         
                         hidlink.status = HIDLINK_STATUS_IDLE;
                     }
-                    else if (command == HIDLINK_COMMAND_CONNECT_TO_ATTACHED_DEVICE) {
+                    else if (command == HIDLINK_COMMAND_CLEAR_BOND_DEVICE_LIST) {             
                         
-                        hidlink.state = HIDLINK_STATE_CONNECT_TO_ATTACHED_DEVICE;
+                        // remove entire list of bond devices
+                        int num_dev = esp_bt_gap_get_bond_device_num();
+                        esp_bd_addr_t *bda = NULL;
+                        int i;
+                    
+                        ESP_LOGW(TAG, "num of bond devices: %d", num_dev);
+
+                        bda = (esp_bd_addr_t *) pvPortMalloc(num_dev * sizeof(esp_bd_addr_t));
+
+                        if (bda != NULL) {
+                            if (esp_bt_gap_get_bond_device_list(&num_dev, bda) == ESP_OK) {
+
+                                for (i = 0; i < num_dev; i++) {
+                                    if (esp_bt_gap_remove_bond_device(bda[i]) == ESP_OK) {
+                                        ESP_LOGD(TAG, " - dev %s, remove ok", bda2str(bda[i], bda_str, 18));
+                                    }
+                                    else {
+                                        ESP_LOGD(TAG, " - dev %s, remove error", bda2str(bda[i], bda_str, 18));
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            ESP_LOGW(TAG, "malloc error");
+                        }
+                    }
+                    else if (command == HIDLINK_COMMAND_SHOW_ATTACHED_DEVICE_INFO) {
+                        ESP_LOGI(TAG, "hidlink is attached to device %s [%s]", 
+                            hidlink.attached_device.name,
+                            bda2str(hidlink.attached_device.bd_addr, bda_str, 18)
+                        );    
                     }
                 }
                 break;
@@ -338,108 +341,4 @@ void hidlink_send_hid_peripheral_data(uint8_t peripheral_index, esp_bd_addr_t *b
     hidlink.tx.index = 0;
 
     hidlink_ble_indicate();
-}
-
-
-bool hidlink_attach_to_device(uint32_t index) {
-
-    bool ret_val = false;
-    nvs_handle_t nvs_handle;
-    esp_err_t err;
-
-    if (index > 0 && index <= hidlink.hid_peripheral_list.index) {
-
-        index -= 1;
-
-        ESP_LOGI(TAG, "%s, saving device data for attachment: %s [%s]", 
-            __func__,
-            hidlink.hid_peripheral_list.device[index].name,
-            bda2str(hidlink.hid_peripheral_list.device[index].bd_addr, bda_str, 18)
-        );
-    
-        err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
-
-        if (err != ESP_OK) {
-            // error opening nvs
-            ESP_LOGW(TAG, "%s, error in nvs_open, %s", __func__, esp_err_to_name(err));
-        }
-        else {
-            err = nvs_set_blob(nvs_handle, HIDLINK_ATTACHED_DEVICE_NVS_VAR, 
-                &hidlink.hid_peripheral_list.device[index],
-                sizeof(hid_peripheral_t)
-            );
-
-            if (err != ESP_OK) {
-                // error saving data to nvs
-                ESP_LOGW(TAG, "%s, error in nvs_set_blob, %s", __func__, esp_err_to_name(err));
-            }
-            else {
-                err = nvs_commit(nvs_handle);
-                
-                if (err != ESP_OK) {
-                    // error commiting to nvs
-                    ESP_LOGW(TAG, "%s, error in nvs_commit, %s", __func__, esp_err_to_name(err));
-                }
-                else {
-                    // successfully saved to nvs
-                    ESP_LOGI(TAG, "%s, save ok", __func__);
-                    nvs_close(nvs_handle);                    
-                    hidlink_set_command(HIDLINK_COMMAND_CONNECT_TO_ATTACHED_DEVICE);
-                    ret_val = true;
-                }
-            }
-        }
-    }
-    
-    return (ret_val);
-} 
-
-
-bool hidlink_load_attached_device(hid_peripheral_t *attached_device) {
-    
-    bool ret_val = false;
-    nvs_handle_t nvs_handle;
-    size_t required_size;
-    esp_err_t err;
-
-    ESP_LOGI(TAG, "%s, loading attached device", __func__);
-
-    memset(attached_device, 0, sizeof(hid_peripheral_t));
-
-    err = nvs_open("storage", NVS_READONLY, &nvs_handle);
-
-    if (err != ESP_OK) {
-        // error opening nvs
-        ESP_LOGW(TAG, "%s, error in nvs_open, %s", __func__, esp_err_to_name(err));
-    }
-    else {
-        err = nvs_get_blob(nvs_handle, HIDLINK_ATTACHED_DEVICE_NVS_VAR, NULL, &required_size);
-            
-        if (err != ESP_OK) {
-            ESP_LOGW(TAG, "%s, error in nvs_get_blob 1, %s", __func__, esp_err_to_name(err));
-        }
-        else if (required_size != sizeof(hid_peripheral_t)) {
-            ESP_LOGW(TAG, "%s, size mismatch, %lu/%lu", 
-                __func__,
-                (uint32_t) required_size,
-                (uint32_t) sizeof(hid_peripheral_t)
-            );
-        }
-        else {
-            ESP_LOGI(TAG, "%s, required size: %lu", __func__, (uint32_t) required_size);
-
-            err = nvs_get_blob(nvs_handle, HIDLINK_ATTACHED_DEVICE_NVS_VAR, attached_device, &required_size);
-            
-            if (err != ESP_OK) {
-                ESP_LOGW(TAG, "%s, error in nvs_get_blob 2 %s", __func__, esp_err_to_name(err));
-            }
-            else {
-                // successfully read from nvs
-                nvs_close(nvs_handle);
-                ret_val = true;
-            }
-        }
-    }
-
-    return (ret_val);
 }

@@ -85,6 +85,7 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
             }
             else {
                 hidlink_add_hid_peripheral(&param->disc_res.bda, (char *) bdname);
+                esp_bt_gap_get_remote_services(param->disc_res.bda);
             }
 
             break;
@@ -99,6 +100,10 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
             else if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED) {
                 ESP_LOGD(TAG, "%s, device discovery stopped", __func__);
                 hidlink_set_command(HIDLINK_COMMAND_SCAN_DONE);
+
+                int num;
+                num = esp_bt_gap_get_bond_device_num();
+                ESP_LOGD(TAG, "%s, bond device num: %d ", __func__, num);
             }
             else {
                 ESP_LOGD(TAG, "%s, unknown discovery state: %d", __func__, param->disc_st_chg.state);
@@ -107,24 +112,64 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
         }
 
         case ESP_BT_GAP_RMT_SRVCS_EVT: {
-            ESP_LOGD(TAG, "%s, event ESP_BT_GAP_RMT_SRVCS_EVT", __func__);    
+            int i;
+            ESP_LOGD(TAG, "%s, event ESP_BT_GAP_RMT_SRVCS_EVT", __func__);
+            ESP_LOGD(TAG, "rmt_srvcs.bda: %s", bda2str(param->rmt_srvcs.bda, bda_str, 18));
+            ESP_LOGD(TAG, "rmt_srvcs.stat: %lu", (uint32_t) param->rmt_srvcs.stat);
+            ESP_LOGD(TAG, "rmt_srvcs.num_uuids: %lu", (uint32_t) param->rmt_srvcs.num_uuids);
+            for(i = 0; i < param->rmt_srvcs.num_uuids; i++) {
+                ESP_LOGD(TAG, "rmt_srvcs.uuid_list[%lu]:", (uint32_t) i);
+                ESP_LOGD(TAG, "  - len: %u", (uint16_t) param->rmt_srvcs.uuid_list[i].len);
+                ESP_LOGD(TAG, "  - uuid16: %04x", (uint16_t) param->rmt_srvcs.uuid_list[i].uuid.uuid16);
+                ESP_LOGD(TAG, "  - uuid32: %08lx", (uint32_t) param->rmt_srvcs.uuid_list[i].uuid.uuid32);
+            }
             break;
         }
     
         case ESP_BT_GAP_READ_REMOTE_NAME_EVT: {
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_READ_REMOTE_NAME_EVT", __func__);
             ESP_LOGD(TAG, "--name: %s", param->read_rmt_name.rmt_name);
-            hidlink_add_hid_peripheral(&param->read_rmt_name.bda, (char *) param->read_rmt_name.rmt_name);
+            if (hidlink_get_status() == HIDLINK_STATUS_SCANNING) {
+                hidlink_add_hid_peripheral(&param->read_rmt_name.bda, (char *) param->read_rmt_name.rmt_name);
+                esp_bt_gap_get_remote_services(param->disc_res.bda);
+            }
+            else if (hidlink_get_status() == HIDLINK_STATUS_CONNECTED) {
+                hidlink_set_attached_device_bda(&param->read_rmt_name.bda);
+                hidlink_set_attached_device_name((char *) param->read_rmt_name.rmt_name);
+                hidlink_set_command(HIDLINK_COMMAND_SHOW_ATTACHED_DEVICE_INFO);
+            }
             break;
         }
 
         case ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT: {
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT", __func__);
+            ESP_LOGD(TAG, "  - stat: %lu", (uint32_t) param->acl_conn_cmpl_stat.stat);
+            ESP_LOGD(TAG, "  - handle: %lu", (uint32_t) param->acl_conn_cmpl_stat.handle);
+            ESP_LOGD(TAG, "  - bda: %s", bda2str(param->acl_conn_cmpl_stat.bda, bda_str, 18));
+            hidlink_set_command(HIDLINK_COMMAND_SET_STATUS_CONNECTED);
+            esp_bt_gap_read_remote_name(param->acl_conn_cmpl_stat.bda);
+            break;
+        }
+
+        case ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT: {
+            ESP_LOGD(TAG, "%s, event ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT", __func__);
+            ESP_LOGD(TAG, "  - reason: %lu", (uint32_t) param->acl_disconn_cmpl_stat.reason);
+            ESP_LOGD(TAG, "  - handle: %lu", (uint32_t) param->acl_disconn_cmpl_stat.handle);
+            ESP_LOGD(TAG, "  - bda: %s", bda2str(param->acl_disconn_cmpl_stat.bda, bda_str, 18));
             break;
         }
 
         case ESP_BT_GAP_MODE_CHG_EVT:
+            char *mode_str[4] = {
+                "ESP_BT_PM_MD_ACTIVE",
+                "ESP_BT_PM_MD_HOLD",
+                "ESP_BT_PM_MD_SNIFF",
+                "ESP_BT_PM_MD_PARK"
+            };
+
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_MODE_CHG_EVT", __func__);
+            ESP_LOGD(TAG, "  - bda: %s", bda2str(param->mode_chg.bda, bda_str, 18));
+            ESP_LOGD(TAG, "  - mode: %lu %s", (uint32_t) param->mode_chg.mode, mode_str[param->mode_chg.mode]);
             break;
 
         case ESP_BT_GAP_RMT_SRVC_REC_EVT:
@@ -136,7 +181,13 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
             break;
 
         case ESP_BT_GAP_CONFIG_EIR_DATA_EVT:
+            uint32_t i;
             ESP_LOGD(TAG, "%s, event ESP_BT_GAP_CONFIG_EIR_DATA_EVT", __func__);
+            ESP_LOGD(TAG, "  - stat: %lu", (uint32_t) param->config_eir_data.stat);
+            ESP_LOGD(TAG, "  - num: %lu", (uint32_t) param->config_eir_data.eir_type_num);
+            for (i = 0; i < param->config_eir_data.eir_type_num; i++) {
+                ESP_LOGD(TAG, "    - type %lu: %lu", (uint32_t) i, (uint32_t) param->config_eir_data.eir_type[i]);
+            }
             break;
 
         default: {

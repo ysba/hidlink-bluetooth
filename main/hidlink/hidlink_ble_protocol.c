@@ -57,10 +57,13 @@ static void hidlink_ble_command_attach_to_peripheral() {
 
     index = hidlink.rx.data[3];
     
-    if (hidlink_attach_to_device(index) == true) {
-        hidlink_ble_ack_response(0x06);
-    }
+    if (index > 0)
+        index -= 1;
     
+    if (esp_bt_hid_host_connect(hidlink.hid_peripheral_list.device[index].bd_addr) == ESP_OK) {
+        ack = 0x06;
+    }
+
     hidlink_ble_ack_response(ack);
 }
 
