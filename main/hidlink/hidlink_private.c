@@ -281,10 +281,10 @@ void hidlink_core_task() {
 
                                 for (i = 0; i < num_dev; i++) {
                                     if (esp_bt_gap_remove_bond_device(bda[i]) == ESP_OK) {
-                                        ESP_LOGD(TAG, " - dev %s, remove ok", bda2str(bda[i], bda_str, 18));
+                                        ESP_LOGW(TAG, " - dev %s, remove ok", bda2str(bda[i], bda_str, 18));
                                     }
                                     else {
-                                        ESP_LOGD(TAG, " - dev %s, remove error", bda2str(bda[i], bda_str, 18));
+                                        ESP_LOGW(TAG, " - dev %s, remove error", bda2str(bda[i], bda_str, 18));
                                     }
                                 }
                             }
@@ -292,6 +292,8 @@ void hidlink_core_task() {
                         else {
                             ESP_LOGW(TAG, "malloc error");
                         }
+
+                        hidlink.status = HIDLINK_STATUS_IDLE;
                     }
                     else if (command == HIDLINK_COMMAND_SHOW_ATTACHED_DEVICE_INFO) {
                         ESP_LOGI(TAG, "hidlink is attached to device %s [%s]", 

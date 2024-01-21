@@ -190,6 +190,13 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
             }
             break;
 
+        case ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT: {
+            ESP_LOGD(TAG, "%s, event ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT", __func__);
+            ESP_LOGD(TAG, "  - bda: %s", bda2str(param->remove_bond_dev_cmpl.bda, bda_str, 18));
+            ESP_LOGD(TAG, "  - status: %lu", (uint32_t) param->remove_bond_dev_cmpl.status);
+            break;
+        }
+
         default: {
             ESP_LOGW(TAG, "event: %d", event);
             break;

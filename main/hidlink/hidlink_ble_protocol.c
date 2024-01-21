@@ -56,15 +56,34 @@ static void hidlink_ble_command_attach_to_peripheral() {
     ESP_LOGI(TAG, "%s", __func__);
 
     index = hidlink.rx.data[3];
-    
-    if (index > 0)
-        index -= 1;
-    
-    if (esp_bt_hid_host_connect(hidlink.hid_peripheral_list.device[index].bd_addr) == ESP_OK) {
-        ack = 0x06;
-    }
 
+    if (hidlink.hid_peripheral_list.index == 0) {
+        
+        ESP_LOGW(TAG, "hid peripheral list is empty!");
+    }
+    else if (index > hidlink.hid_peripheral_list.index) {
+        
+        ESP_LOGW(TAG, "invalid index!");
+    }
+    else {
+
+        if (index > 0)
+            index -= 1;
+        
+        if (esp_bt_hid_host_connect(hidlink.hid_peripheral_list.device[index].bd_addr) == ESP_OK) {
+            ack = 0x06;
+        }
+    }
+    
     hidlink_ble_ack_response(ack);
+}
+
+
+static void hidlink_ble_command_clear_bond_device_list() {
+
+    ESP_LOGI(TAG, "%s", __func__);
+    hidlink_set_command(HIDLINK_COMMAND_CLEAR_BOND_DEVICE_LIST);
+    hidlink_ble_ack_response(0x06);
 }
 
 
@@ -158,6 +177,11 @@ void hidlink_ble_protocol_parser(uint8_t *data, uint32_t len) {
 
                             case HIDLINK_PROTOCOL_COMMAND_ATTACH_TO_PERIPHERAL: {
                                 hidlink_ble_command_attach_to_peripheral();
+                                break;
+                            }
+
+                            case HIDLINK_PROTOCOL_COMMAND_CLEAR_BOND_DEVICE_LIST: {
+                                hidlink_ble_command_clear_bond_device_list();
                                 break;
                             }
 
