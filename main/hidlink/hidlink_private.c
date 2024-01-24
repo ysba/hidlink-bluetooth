@@ -182,6 +182,7 @@ void hidlink_core_task() {
                 else {
                     // api init success
                     ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_INIT, ok", __func__);
+                    led_set_blink(LED_HANDLE_GREEN, 1);
                     hidlink.state = HIDLINK_STATE_IDLE;
                 }
                 break;
@@ -190,6 +191,10 @@ void hidlink_core_task() {
             case HIDLINK_STATE_API_DEINIT: {
 
                 ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_DEINIT, start", __func__);
+
+                led_set_off(LED_HANDLE_GREEN);
+                led_set_off(LED_HANDLE_YELLOW);
+                led_set_on(LED_HANDLE_RED);
                 
                 if ((err = esp_bluedroid_disable()) != ESP_OK) {
                     ESP_LOGW(TAG, "%s, esp_bluedroid_disable failed: %s", __func__, esp_err_to_name(err));

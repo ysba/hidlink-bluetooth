@@ -107,12 +107,12 @@ void led_start() {
     led[LED_HANDLE_RED].io = GPIO_LED_RED;
 
     
-    led_set_blink(LED_HANDLE_GREEN, 1);
-    led_set_blink(LED_HANDLE_YELLOW, 2);
-    led_set_blink(LED_HANDLE_RED, 3);
+    led_set_off(LED_HANDLE_GREEN);
+    led_set_off(LED_HANDLE_YELLOW);
+    led_set_off(LED_HANDLE_RED);
 
 
-    xTaskCreate(led_task, "led", 2048, NULL, 10, NULL);
+    xTaskCreate(led_task, "led", 512, NULL, 10, NULL);
 }
 
 
