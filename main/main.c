@@ -17,6 +17,9 @@ static const char *TAG = "MAIN";
  *               set of rules and equations.
  */
 void app_main(void) {
+
+    esp_log_level_set("BT_GAP", ESP_LOG_DEBUG);
+
     ESP_LOGI(TAG, "%s, start", __func__);
     led_start();
     hidlink_start();

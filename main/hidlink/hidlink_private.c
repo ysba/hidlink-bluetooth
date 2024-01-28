@@ -41,7 +41,7 @@ void hidlink_init() {
         ESP_LOGE(TAG, "tx data malloc error!");
     }
 
-    hidlink.status = HIDLINK_STATUS_IDLE;
+    hidlink.status = HIDLINK_STATUS_NOT_CONNECTED;
     hidlink.state = HIDLINK_STATE_API_INIT;
 }
 
@@ -238,14 +238,14 @@ void hidlink_core_task() {
                     }
                     else if (command == HIDLINK_COMMAND_SCAN_STOP) {
                         if (hidlink.status == HIDLINK_STATUS_SCANNING) {
-                            hidlink.status = HIDLINK_STATUS_IDLE;
+                            hidlink.status = HIDLINK_STATUS_NOT_CONNECTED;
                             ESP_LOGI(TAG, "%s, HIDLINK_COMMAND_SCAN_STOP", __func__);
                             esp_bt_gap_cancel_discovery();
                         }
                     }
                     else if (command == HIDLINK_COMMAND_SCAN_DONE) {
                         ESP_LOGI(TAG, "%s, HIDLINK_COMMAND_SCAN_DONE", __func__);
-                        hidlink.status = HIDLINK_STATUS_IDLE;
+                        hidlink.status = HIDLINK_STATUS_NOT_CONNECTED;
 
                         ESP_LOGI(TAG, "hid devices found during scan: %lu", hidlink.hid_peripheral_list.index);
                         
@@ -268,7 +268,7 @@ void hidlink_core_task() {
                     }
                     else if (command == HIDLINK_COMMAND_SET_STATUS_IDLE) {
                         
-                        hidlink.status = HIDLINK_STATUS_IDLE;
+                        hidlink.status = HIDLINK_STATUS_NOT_CONNECTED;
                     }
                     else if (command == HIDLINK_COMMAND_CLEAR_BOND_DEVICE_LIST) {             
                         
@@ -298,7 +298,7 @@ void hidlink_core_task() {
                             ESP_LOGW(TAG, "malloc error");
                         }
 
-                        hidlink.status = HIDLINK_STATUS_IDLE;
+                        hidlink.status = HIDLINK_STATUS_NOT_CONNECTED;
                     }
                     else if (command == HIDLINK_COMMAND_SHOW_ATTACHED_DEVICE_INFO) {
                         ESP_LOGI(TAG, "hidlink is attached to device %s [%s]", 
@@ -315,37 +315,3 @@ void hidlink_core_task() {
     }
 }
 
-
-
-void hidlink_send_hid_peripheral_data(uint8_t peripheral_index, esp_bd_addr_t *bd_addr, char *name) {
-
-    uint8_t checksum = 0;
-    uint32_t i;
-    uint32_t index = 0;
-
-    if (strlen(name) > (HIDLINK_PERIPHERAL_MAX_NAME_LEN))
-        name[HIDLINK_PERIPHERAL_MAX_NAME_LEN] = 0;
-
-    hidlink.tx.data[index++] = 0x3c;
-    hidlink.tx.data[index++] = HIDLINK_PROTOCOL_COMMAND_PERIPHERAL_SCAN_DATA;
-    hidlink.tx.data[index++] = 1 + sizeof(esp_bd_addr_t) + strlen(name);
-    hidlink.tx.data[index++] = peripheral_index;
-
-
-    memcpy(&hidlink.tx.data[index], (uint8_t *) bd_addr, sizeof(esp_bd_addr_t));
-    index += sizeof(esp_bd_addr_t);
-
-    memcpy(&hidlink.tx.data[index], (uint8_t *) name, strlen(name));
-    index += strlen(name);
-
-    for (i = 0; i < index; i++) {
-        checksum += hidlink.tx.data[i];
-    }
-
-    hidlink.tx.data[index++] = (checksum ^ ((uint8_t) 0xff)) + 1;
-
-    hidlink.tx.len = index;
-    hidlink.tx.index = 0;
-
-    hidlink_ble_indicate();
-}

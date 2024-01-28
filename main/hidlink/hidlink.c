@@ -104,7 +104,8 @@ void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
             memcpy(&hidlink.hid_peripheral_list.device[i].name, name, name_len);
 
             // sends indication to the BLE interface
-            hidlink_send_hid_peripheral_data(hidlink.hid_peripheral_list.index, bd_addr, name);
+            // #TODO: REMOVE? NOW IS SENT VIA REQUEST FROM BLE
+            //hidlink_send_hid_peripheral_data(hidlink.hid_peripheral_list.index, bd_addr, name);
             
             hidlink.hid_peripheral_list.index++; 
         }
