@@ -18,8 +18,7 @@
 
 #define HIDLINK_PERIPHERAL_MAX_NAME_LEN     32
 
-#define HIDLINK_UART_PORT_NUM       2
-#define HIDLINK_UART_BUF_SIZE       256
+
 
 
 // hid peripheral information

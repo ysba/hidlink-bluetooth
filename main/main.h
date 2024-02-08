@@ -34,10 +34,10 @@
 #include <driver/uart.h>
 #include <driver/gpio.h>
 
-#include "hardware.h"
 #include "hidlink/hidlink.h"
 #include "bt_classic/bt_classic.h"
 #include "bt_low_energy/bt_low_energy.h"
 #include "led/led.h"
+#include "serial/serial.h"
 
 #endif

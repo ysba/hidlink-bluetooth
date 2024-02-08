@@ -211,51 +211,6 @@ void hidlink_set_device_name(char *new_name) {
     // #TODO: set bluetooth device name
 }
 
-
-/**
- * @brief New HID report
- *
- * This function is called by the Bluetooth stack whenever a HID report is received. 
- * The HID report is then sent to the USB interface via UART.
- *
- * @param data HID report data
- * @param len HID report length
- */
-void hidlink_send_hid_report_to_uart(uint8_t *data, uint32_t len) {
-
-    // #TODO: send data to rtos task instead of directly to uart.
-
-    uint8_t buf[32] = {0};
-    uint32_t tx_count = 0;
-    uint32_t i;
-    uint8_t checksum = 0;
-
-    // 0xaa
-    // len (max = sizeof(buf) - 3)
-    // data[n]
-    // checksum
-
-    if (len > (sizeof(buf) - 3)) {
-        ESP_LOGW(TAG, "%s, invalid len", __func__);
-        return;
-    }
-
-    buf[tx_count++] = 0xaa;
-    buf[tx_count++] = len;
-    memcpy(&buf[2], data, len);
-    tx_count += len;
-
-    for (i = 0; i < tx_count; i++)
-        checksum += buf[i];
-
-    buf[tx_count++] = ~checksum + 1;
-
-    uart_write_bytes(HIDLINK_UART_PORT_NUM, buf, tx_count);
-
-    ESP_LOG_BUFFER_HEX_LEVEL(TAG, buf, tx_count, ESP_LOG_INFO);
-}
-
-
 /**
  * @brief Get hidlink current status
  *

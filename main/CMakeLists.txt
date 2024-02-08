@@ -12,6 +12,7 @@ idf_component_register(
         "bt_low_energy/ble_gap.c"
         "bt_low_energy/ble_gatts.c"
         "led/led.c"
+        "serial/serial.c"
     INCLUDE_DIRS 
         "."
 )

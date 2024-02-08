@@ -131,17 +131,6 @@ void hidlink_core_task() {
 
                 ESP_LOGD(TAG, "%s, HIDLINK_STATE_API_INIT, start", __func__);
 
-                uart_config_t uart_config = {
-                    .baud_rate = 115200,
-                    .data_bits = UART_DATA_8_BITS,
-                    .parity = UART_PARITY_DISABLE,
-                    .stop_bits = UART_STOP_BITS_1,
-                    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-                    .source_clk = UART_SCLK_DEFAULT,
-                };
-                int intr_alloc_flags = ESP_INTR_FLAG_IRAM;
-
-
                 err = nvs_flash_init();
                 if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
                     ESP_LOGW(TAG, "%s, nvs_flash_init failed, err %s", __func__, esp_err_to_name(err));
@@ -158,25 +147,6 @@ void hidlink_core_task() {
                 }
                 else if (bt_low_energy_init() == false) {
 
-                    hidlink.state = HIDLINK_STATE_API_DEINIT;
-                }
-
-                // #TODO: add serial_port group
-                else if((err = uart_driver_install(HIDLINK_UART_PORT_NUM, 
-                        HIDLINK_UART_BUF_SIZE, 0, 0, NULL, intr_alloc_flags)) != ESP_OK) {
-                    ESP_LOGE(TAG, "uart_driver_install failed: %s", esp_err_to_name(err));
-                    hidlink.state = HIDLINK_STATE_API_DEINIT;
-                }
-                else if((err = uart_param_config(HIDLINK_UART_PORT_NUM, &uart_config)) != ESP_OK) {
-                    ESP_LOGE(TAG, "uart_param_config failed: %s", esp_err_to_name(err));
-                    hidlink.state = HIDLINK_STATE_API_DEINIT;
-                }
-                else if((err = uart_set_pin(HIDLINK_UART_PORT_NUM, 
-                        IO_UART_TX, 
-                        UART_PIN_NO_CHANGE, 
-                        UART_PIN_NO_CHANGE, 
-                        UART_PIN_NO_CHANGE)) != ESP_OK) {
-                    ESP_LOGE(TAG, "uart_set_pin failed: %s", esp_err_to_name(err));
                     hidlink.state = HIDLINK_STATE_API_DEINIT;
                 }
                 else {
