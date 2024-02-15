@@ -8,6 +8,7 @@
 typedef struct {
     serial_status_t status;
     QueueHandle_t tx_queue;
+    QueueHandle_t rx_queue;
 } serial_t;
 
 
