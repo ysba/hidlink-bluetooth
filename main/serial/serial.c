@@ -7,45 +7,7 @@
 
 static const char *TAG = "SERIAL";
 
-serial_t serial;
-
-
-static void serial_set_error_state() {
-    if (serial.status != SERIAL_STATUS_ERROR) {
-        serial.status = SERIAL_STATUS_ERROR;
-        ESP_LOGW(TAG, "rx timeout");
-        led_set_blink(LED_HANDLE_RED, 1);
-    }
-}
-
-
-static void serial_task() {
-
-    serial_frame_t frame;
-
-    while(1) {
-
-        // step 1: send command wheter via queue or timeout
-        if(xQueueReceive(serial.tx_queue, &frame, pdMS_TO_TICKS(200)) == pdTRUE) {
-            // send hid report
-
-            //uart_write_bytes(HIDLINK_UART_PORT_NUM, buf, tx_count);
-
-            //ESP_LOG_BUFFER_HEX_LEVEL(TAG, buf, tx_count, ESP_LOG_INFO);   
-        }
-        else {
-            // send polling request
-        }
-
-        // step 2: wait for response
-        if(xQueueReceive(serial.rx_queue, (void *) &event, pdMS_TO_TICKS(50)) == pdTRUE) {
-
-        }
-        else {
-            serial_set_error_state();
-        }
-    }
-}
+static serial_t serial;
 
 
 void serial_start() {
@@ -63,7 +25,7 @@ void serial_start() {
 
     int intr_alloc_flags = ESP_INTR_FLAG_IRAM;
 
-    if((err = uart_driver_install(HIDLINK_UART_PORT_NUM, HIDLINK_UART_BUF_SIZE, 0, 0, &serial.rx_queue, intr_alloc_flags)) != ESP_OK) {
+    if((err = uart_driver_install(HIDLINK_UART_PORT_NUM, HIDLINK_UART_BUF_SIZE, HIDLINK_UART_BUF_SIZE, 10, &serial.queue_rx, intr_alloc_flags)) != ESP_OK) {
         ESP_LOGE(TAG, "uart_driver_install failed: %s", esp_err_to_name(err));
         return;
     }
@@ -81,7 +43,7 @@ void serial_start() {
     }
 
     serial.status = SERIAL_STATUS_INIT;
-    serial.tx_queue = xQueueCreate(10, sizeof(serial_frame_t));
+    serial.queue_tx = xQueueCreate(10, sizeof(serial_frame_t));
 
     xTaskCreate(serial_task, "serial", 2048, NULL, 10, NULL);
 
@@ -89,35 +51,135 @@ void serial_start() {
 }
 
 
+void serial_task() {
+
+    serial_frame_t frame;
+    uart_event_t event;
+
+    while(1) {
+
+        if(xQueueReceive(serial.queue_tx, &frame, pdMS_TO_TICKS(1000)) == pdFALSE) {
+            
+            frame = serial_get_status_request_frame();
+        }
+
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, frame.data, frame.len, ESP_LOG_DEBUG);
+        uart_write_bytes(HIDLINK_UART_PORT_NUM, frame.data, frame.len);
+        
+
+        if(xQueueReceive(serial.queue_rx, (void *) &event, pdMS_TO_TICKS(1000)) == pdTRUE) {
+
+            switch (event.type) {
+
+                case UART_DATA: {
+
+                    break;
+                }
+
+                case UART_FIFO_OVF: {
+                    ESP_LOGW(TAG, "uart event: overflow");
+                    uart_flush_input(HIDLINK_UART_PORT_NUM);
+                    xQueueReset(serial.queue_rx);
+                    break;
+                }
+
+                case UART_BUFFER_FULL: {
+                    ESP_LOGW(TAG, "uart event: buffer full");
+                    uart_flush_input(HIDLINK_UART_PORT_NUM);
+                    xQueueReset(serial.queue_rx);
+                    break;
+                }
+
+                // case UART_BREAK: {
+                //     // #TODO: check error event!
+                //     ESP_LOGW(TAG, "uart event: break");
+                //     break;
+                // }
+
+                case UART_FRAME_ERR: {
+                    ESP_LOGW(TAG, "uart event: frame error");
+                    break;
+                }
+
+                default: {
+                    ESP_LOGW(TAG, "uart event: unexpected (%d)", event.type);
+                    break;
+                }
+            }
+        }
+        else {
+            serial_set_error_state();
+        }
+    }
+}
+
+
+void serial_set_error_state() {
+    if (serial.status != SERIAL_STATUS_ERROR) {
+        serial.status = SERIAL_STATUS_ERROR;
+        ESP_LOGW(TAG, "rx timeout");
+        led_set_blink(LED_HANDLE_RED, 1);
+    }
+}
+
+
+void serial_send_status_request() {
+
+}
+
+
 void serial_send_hid_report(uint8_t *data, uint32_t len) {
 
     serial_frame_t frame = {0};
-
-    uint32_t i;
-    uint8_t checksum = 0;
-
-    // 0xaa
-    // len (max = sizeof(buf) - 3)
-    // data[n]
-    // checksum
+    uint8_t checksum;
 
     if (len > (SERIAL_FRAME_DATA_LEN - 3)) {
         ESP_LOGW(TAG, "%s, invalid len", __func__);
         return;
     }
 
+    frame.len = 0;
     frame.data[frame.len++] = 0xaa;
+    frame.data[frame.len++] = SERIAL_COMMAND_HID_REPORT;
     frame.data[frame.len++] = len;
     memcpy(&frame.data[frame.len], data, len);
     frame.len += len;
+    checksum = serial_checksum(frame.data, frame.len);
+    frame.data[frame.len++] = checksum;
+    
+    xQueueSend(serial.queue_tx, &frame, portMAX_DELAY);
+}
 
-    // checksum
-    frame.data[frame.len] = 0;
-    for (i = 0; i < frame.len; i++) {
-        frame.data[frame.len] += frame.data[i];
+
+serial_frame_t serial_get_status_request_frame() {
+
+    serial_frame_t frame = {0};
+    uint8_t checksum;
+
+    frame.len = 0;
+    frame.data[frame.len++] = 0xaa;
+    frame.data[frame.len++] = SERIAL_COMMAND_STATUS_REQUEST;
+    frame.data[frame.len++] = 0;
+    checksum = serial_checksum(frame.data, frame.len);
+    frame.data[frame.len++] = checksum;
+    
+    return (frame);
+}
+
+
+uint8_t serial_checksum(uint8_t *data, uint32_t len) {
+
+    uint8_t checksum = 0;
+
+    while (len--) {
+        checksum += *data++;
     }
 
-    frame.data[frame.len++] = ~checksum + 1;
+    return (~checksum + 1);
+}
 
-    xQueueSend(serial.tx_queue, &frame, portMAX_DELAY);
+
+serial_status_t serial_get_status() {
+
+    return serial.status;
 }
