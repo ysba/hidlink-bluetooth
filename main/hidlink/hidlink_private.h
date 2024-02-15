@@ -1,8 +1,3 @@
-/**
- * @file hidlink_private.h
- * @brief Header containing definitions for hidlink internal operation.
- */
-
 #ifndef __HIDLINK_PRIVATE__
 #define __HIDLINK_PRIVATE__
 

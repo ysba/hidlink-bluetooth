@@ -1,8 +1,3 @@
-/**
- * @file serial.c
- * @brief Serial communication between ESP32 and RP2040.
- */
-
 #include "../main.h"
 #include "serial_private.h"
 
@@ -93,15 +88,7 @@ void serial_start() {
     ESP_LOGI(TAG, "serial init ok");
 }
 
-/**
- * @brief Send HID report via serial port.
- *
- * This function is called by the Bluetooth stack whenever a HID report is received. 
- * The HID report is then sent to the USB interface via UART.
- *
- * @param data HID report data
- * @param len HID report length
- */
+
 void serial_send_hid_report(uint8_t *data, uint32_t len) {
 
     serial_frame_t frame = {0};

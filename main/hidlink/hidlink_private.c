@@ -1,10 +1,3 @@
-/**
- * @file hidlink_private.c
- * @brief Internal hidlink core functions.
- *
- * These functions are parte of hidlink core operation and cannot be called from external scope.
- */
-
 #include "../main.h"
 #include "hidlink_private.h"
 
@@ -16,9 +9,7 @@ hidlink_t hidlink;
 // string for loggind bluetooth addresses
 static char bda_str[18];
 
-/**
- * @brief Internal function to initialize hidlink data structure.
- */
+
 void hidlink_init() {
 
     memset(&hidlink, 0, sizeof(typeof(hidlink)));
@@ -53,9 +44,6 @@ void hidlink_clear_hid_peripheral_list() {
 }
 
 
-/**
- * @brief teste
- */
 void hidlink_ble_indicate() {
 
     uint32_t byte_to_send;
@@ -111,12 +99,6 @@ void hidlink_ble_indicate() {
 }
 
 
-/**
- * @brief Core hidlink task.
- *
- * This function is the core hidlink task. It is initialized at app_main() and must run forever.
- *
- */
 void hidlink_core_task() {
 
     esp_err_t err;

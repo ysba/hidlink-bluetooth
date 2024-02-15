@@ -1,54 +1,22 @@
-/**
- * @file hidlink.c
- * @brief External hidlink interface functions.
- *
- * These functions needs to be called externally for proper hidlink operation.
- */
-
-
 #include "../main.h"
 #include "hidlink_private.h"
 
 
-// bluetooth device name (same for both ble and classic)
 char *dev_name = "hidlink";
 
 
-/**
- * @brief Start hidlink task.
- *
- * Call this function once at code initialization in app_main().
- * The FreeRTOS hidlink_core_task() is initiated and runs forever.
- */
 void hidlink_start() {
 
     xTaskCreate(hidlink_core_task, "hidlink", 4096, NULL, 10, NULL);
 }
 
 
-/**
- * @brief Set hidlink operation command.
- *
- * Call this function whenever is needed to change hidlink operation mode.
- *
- * @param command Command type from \link hidlink_command_t \endlink enumerator.
- */
 void hidlink_set_command(hidlink_command_t command) {
     
     xQueueSend(hidlink.command_queue, &command, portMAX_DELAY);
 }
 
 
-/**
- * @brief Add HID peripheral to list.
- *
- * This function is called whenever a valid HID peripheral is found during Bluetooth scan.
- *
- * When a HID peripheral is added to list, a indication is sent to the BLE interface.
- *
- * @param bd_addr Pointer to discovered device address.
- * @param name Pointer to discovered device name.
- */
 void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
     
     uint32_t i;
@@ -113,44 +81,18 @@ void hidlink_add_hid_peripheral(esp_bd_addr_t *bd_addr, char *name) {
 }
 
 
-/**
- * @brief Set BLE characteristic handle
- *
- * This function is called by the BLE stack. 
- * It stores a handle when data is written to a BLE characteristic.
- * The handle is needed by hidlink_ble_indicate() to respond to the same characteristic.
- *
- * @param char_handle BLE characteristic handle.
- */
 void hidlink_ble_set_char_handle(uint16_t char_handle) {
 
     hidlink.ble.chr_handle = char_handle;
 }
 
 
-/**
- * @brief Set BLE MTU
- *
- * This function is called by the BLE stack when there is event to change MTU.
- *
- * @param mtu New MTU value.
- */
 void hidlink_ble_set_mtu(uint16_t mtu) {
 
     hidlink.ble.mtu_size = mtu;
 }
 
 
-/**
- * @brief Set BLE connection information
- *
- * This function is called by the BLE stack at the connection event.
- * It stores information about the connection
- *
- * @param gatts_if GATTS interface handle.
- * @param conn_id Connection identifier.
- * @param bda Remote Bluetooth Device Address.
- */
 void hidlink_set_ble_connection_info(esp_gatt_if_t gatts_if, uint16_t conn_id, esp_bd_addr_t *bda) {
 
     hidlink.ble.conn_id = conn_id;
@@ -159,14 +101,6 @@ void hidlink_set_ble_connection_info(esp_gatt_if_t gatts_if, uint16_t conn_id, e
 }
 
 
-/**
- * @brief Set BLE CCCD
- *
- * This function is called by the BLE stack and it is used to change the CCCD (Client Characteristic Configuration Descriptor).
- * Notifications and/or indications for the BLE characteristics can be enabled or disabled.
- *
- * @param val Type of configuration (1: notify enable, 2: indicate enable, other values: disable both, characteristic is available only through direct reading).
- */
 void hidlink_set_cccd(uint16_t val) {
 
     if(val == 1) {
@@ -187,35 +121,17 @@ void hidlink_set_cccd(uint16_t val) {
 }
 
 
-/**
- * @brief Get hidlink Bluetooth device name
- *
- * This function gets the hidlink device name to appear in Bluetooth interfaces (BLE and Classic).
- *
- * @return Pointer to name string
- */
 char *hidlink_get_device_name() {
     return (dev_name);
 }
 
 
-/**
- * @brief Set hidlink Bluetooth device name
- *
- * This function sets the hidlink device name to appear in Bluetooth interfaces (BLE and Classic).
- *
- * @param Pointer to name string
- */
 void hidlink_set_device_name(char *new_name) {
     
     // #TODO: set bluetooth device name
 }
 
-/**
- * @brief Get hidlink current status
- *
- * This function is called to get current hidlink status (ie. connected, idle, etc).
- */
+
 hidlink_status_t hidlink_get_status() {
 
     return (hidlink.status);

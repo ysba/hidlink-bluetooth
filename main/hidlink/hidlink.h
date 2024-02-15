@@ -1,8 +1,3 @@
-/**
- * @file hidlink.h
- * @brief Header containing definitions for hidlink interface operations.
- */
-
 #ifndef __HIDLINK__
 #define __HIDLINK__
 
