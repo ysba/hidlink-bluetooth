@@ -75,7 +75,7 @@ void bt_gap_event_handler(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
                         eir_len = property->len;
                         eir = (uint8_t *)(property->val);
                         ESP_LOGD(TAG, "  --extended inquiry response: %d bytes", eir_len);
-                        ESP_LOG_BUFFER_HEX_LEVEL(TAG, eir, eir_len, ESP_LOG_DEBUG);
+                        ESP_LOG_BUFFER_HEX_LEVEL(TAG, eir, eir_len, ESP_LOG_VERBOSE);
                         break;
                     }
 
